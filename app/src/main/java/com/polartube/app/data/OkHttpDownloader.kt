@@ -64,7 +64,7 @@ import org.schabi.newpipe.extractor.stream.*
 
 
 class OkHttpDownloader(private val client: OkHttpClient) : Downloader() {
-    override fun execute(request: Request): Response {
+    override fun execute(request: org.schabi.newpipe.extractor.downloader.Request): org.schabi.newpipe.extractor.downloader.Response {
         val body = request.dataToSend()?.toRequestBody()
         val builder = okhttp3.Request.Builder()
             .method(request.httpMethod(), body)
@@ -76,7 +76,7 @@ class OkHttpDownloader(private val client: OkHttpClient) : Downloader() {
         }
         client.newCall(builder.build()).execute().use { resp ->
             if (resp.code == 429) throw ReCaptchaException("reCaptcha requerido", request.url())
-            return Response(
+            return org.schabi.newpipe.extractor.downloader.Response(
                 resp.code, resp.message, resp.headers.toMultimap(),
                 resp.body?.string(), resp.request.url.toString()
             )

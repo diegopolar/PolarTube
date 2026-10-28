@@ -120,7 +120,7 @@ fun PlayerScreen(
 
             if (ui.loading || ui.isBuffering) CircularProgressIndicator(Modifier.align(Alignment.Center))
 
-            AnimatedVisibility(showControls, enter = fadeIn(), exit = fadeOut()) {
+            androidx.compose.animation.AnimatedVisibility(visible = showControls, enter = fadeIn(), exit = fadeOut()) {
                 PlayerControls(ui, vm, onBack, onEnterPip)
             }
         }

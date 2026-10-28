@@ -1,3 +1,6 @@
+import org.schabi.newpipe.extractor.channel.ChannelInfoItem
+import org.schabi.newpipe.extractor.playlist.PlaylistInfoItem
+import org.schabi.newpipe.extractor.stream.StreamInfoItem
 package com.polartube.app.data
 
 import android.app.*
