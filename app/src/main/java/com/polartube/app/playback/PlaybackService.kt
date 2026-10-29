@@ -97,7 +97,7 @@ class PlaybackService : MediaSessionService() {
 
     private class Callback(private val player: ExoPlayer) : MediaSession.Callback {
         private val dataSource = DefaultHttpDataSource.Factory()
-            .setUserAgent(OkHttpDownloader."PolarTube/1.0")
+            .setUserAgent("PolarTube/1.0")
             .setAllowCrossProtocolRedirects(true)
         private val factory = ProgressiveMediaSource.Factory(dataSource)
 
