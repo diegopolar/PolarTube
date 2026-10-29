@@ -7,9 +7,7 @@ import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.channel.ChannelInfoItem
 import org.schabi.newpipe.extractor.playlist.PlaylistInfoItem
 import org.schabi.newpipe.extractor.search.SearchInfo
-import org.schabi.newpipe.extractor.stream.DeliveryMethod
-import org.schabi.newpipe.extractor.MediaFormat
-import org.schabi.newpipe.extractor.stream.Stream
+import org.schabi.newpipe.extractor.stream.MediaFormat
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 
@@ -20,12 +18,9 @@ class NewPipeStreamRepository : StreamRepository {
         val handler = yt.searchQHFactory.fromQuery(query, emptyList(), "")
         SearchInfo.getInfo(yt, handler).relatedItems.mapNotNull { item ->
             when (item) {
-                is StreamInfoItem -> SearchItem(item.url, item.name, item.uploaderName ?: "",
-                    item.duration, item.thumbnails.firstOrNull()?.url, ResultType.VIDEO)
-                is ChannelInfoItem -> SearchItem(item.url, item.name, "${item.subscriberCount} suscriptores",
-                    0, item.thumbnails.firstOrNull()?.url, ResultType.CHANNEL)
-                is PlaylistInfoItem -> SearchItem(item.url, item.name, item.uploaderName ?: "",
-                    0, item.thumbnails.firstOrNull()?.url, ResultType.PLAYLIST)
+                is StreamInfoItem -> SearchItem(item.url, item.name, item.uploaderName ?: "", item.duration, item.thumbnails.firstOrNull()?.url, ResultType.VIDEO)
+                is ChannelInfoItem -> SearchItem(item.url, item.name, "${item.subscriberCount} suscriptores", 0, item.thumbnails.firstOrNull()?.url, ResultType.CHANNEL)
+                is PlaylistInfoItem -> SearchItem(item.url, item.name, item.uploaderName ?: "", 0, item.thumbnails.firstOrNull()?.url, ResultType.PLAYLIST)
                 else -> null
             }
         }
@@ -33,13 +28,12 @@ class NewPipeStreamRepository : StreamRepository {
 
     override suspend fun streamDetails(url: String): StreamDetails = withContext(Dispatchers.IO) {
         val info = StreamInfo.getInfo(yt, url)
-        fun <T : Stream> List<T>.progressive() = filter { it.deliveryMethod == DeliveryMethod.PROGRESSIVE_HTTP }
 
-        val audio = info.audioStreams.progressive()
-            .filter { it.format == MediaFormat.M4A }
-            .maxByOrNull { it.averageBitrate }
-        val videoOnly = info.videoOnlyStreams.progressive().filter { it.format == MediaFormat.MPEG_4 }
-        val muxed = info.videoStreams.progressive().filter { it.format == MediaFormat.MPEG_4 }
+        // Tomamos el mejor audio disponible (generalmente M4A en DASH)
+        val audio = info.audioStreams.firstOrNull { it.format == MediaFormat.M4A } ?: info.audioStreams.firstOrNull()
+        // Permitimos video DASH (MPEG_4 o WEBM)
+        val videoOnly = info.videoOnlyStreams.filter { it.format == MediaFormat.MPEG_4 || it.format == MediaFormat.WEBM }
+        val muxed = info.videoStreams.filter { it.format == MediaFormat.MPEG_4 }
 
         val options = buildList {
             for (h in listOf(1080, 720, 480, 360)) {
@@ -52,7 +46,8 @@ class NewPipeStreamRepository : StreamRepository {
             }
             audio?.let { add(StreamOption(StreamOption.AUDIO_ONLY, null, it.content)) }
         }
-        require(options.isNotEmpty()) { "No se encontraron streams reproducibles" }
+        
+        require(options.isNotEmpty()) { "No se encontraron streams de video reproducibles" }
         StreamDetails(info.name, info.uploaderName ?: "", info.thumbnails.firstOrNull()?.url, options)
     }
 }
