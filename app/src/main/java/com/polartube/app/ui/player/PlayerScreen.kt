@@ -92,7 +92,7 @@ fun PlayerScreen(
         AndroidView(
             modifier = modifier,
             factory = { ctx ->
-                PlayerView(ctx).apply {
+                PlayerView(ctx).apply { keepScreenOn = true; 
                     useController = false                       // controles propios en Compose
                     resizeMode = AspectRatioFrameLayout.RESIZE_MODE_FIT
                     setShutterBackgroundColor(android.graphics.Color.BLACK)
