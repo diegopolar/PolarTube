@@ -3,11 +3,13 @@ package com.polartube.app.data
 import com.polartube.app.domain.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import org.schabi.newpipe.extractor.MediaFormat
 import org.schabi.newpipe.extractor.ServiceList
 import org.schabi.newpipe.extractor.channel.ChannelInfoItem
 import org.schabi.newpipe.extractor.playlist.PlaylistInfoItem
 import org.schabi.newpipe.extractor.search.SearchInfo
-import org.schabi.newpipe.extractor.stream.MediaFormat
+import org.schabi.newpipe.extractor.stream.DeliveryMethod
+import org.schabi.newpipe.extractor.stream.Stream
 import org.schabi.newpipe.extractor.stream.StreamInfo
 import org.schabi.newpipe.extractor.stream.StreamInfoItem
 
@@ -29,9 +31,7 @@ class NewPipeStreamRepository : StreamRepository {
     override suspend fun streamDetails(url: String): StreamDetails = withContext(Dispatchers.IO) {
         val info = StreamInfo.getInfo(yt, url)
 
-        // Tomamos el mejor audio disponible (generalmente M4A en DASH)
         val audio = info.audioStreams.firstOrNull { it.format == MediaFormat.M4A } ?: info.audioStreams.firstOrNull()
-        // Permitimos video DASH (MPEG_4 o WEBM)
         val videoOnly = info.videoOnlyStreams.filter { it.format == MediaFormat.MPEG_4 || it.format == MediaFormat.WEBM }
         val muxed = info.videoStreams.filter { it.format == MediaFormat.MPEG_4 }
 
